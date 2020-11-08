@@ -51,7 +51,7 @@ linters-settings:
   gocyclo:
     min-complexity: 30
   goimports:
-    local-prefixes: ext.arhat.dev/template-go
+    local-prefixes: ext.arhat.dev/runtime-docker
   lll:
     line-length: 120
     # tab width in spaces. Default to 1.

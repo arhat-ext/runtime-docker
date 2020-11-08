@@ -1,4 +1,4 @@
-module ext.arhat.dev/template-go
+module ext.arhat.dev/runtime-docker
 
 go 1.15
 

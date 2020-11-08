@@ -1,9 +1,9 @@
-# Default values for template-go.
+# Default values for runtime-docker.
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
 image:
-  repository: ghcr.io/arhat-ext/template-go
+  repository: ghcr.io/arhat-ext/runtime-docker
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
   tag: ""
@@ -38,7 +38,7 @@ tolerations: []
 affinity: {}
 
 config:
-  templateGo:
+  app:
     log:
     - level: verbose
       format: console

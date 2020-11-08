@@ -1,4 +1,4 @@
-build:image:linux:template-go:
+build:image:linux:runtime-docker:
   stage: build-images
   image: docker:stable
   services:
@@ -14,14 +14,14 @@ build:image:linux:template-go:
   tags:
   - linux
   dependencies:
-  - test:unit:linux:template-go
+  - test:unit:linux:runtime-docker
 
 # TODO: build windows containers
-# build:image:windows:template-go:
+# build:image:windows:runtime-docker:
 #   script:
 #   - make image.build.windows.all
 #   - make image.push.windows.all
 #   tags:
 #   - windows
 #   dependencies:
-#   - test:unit:windows:template-go
+#   - test:unit:windows:runtime-docker

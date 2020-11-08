@@ -1,7 +1,7 @@
 {{/*
 Expand the name of the chart.
 */}}
-{{- define "template-go.name" -}}
+{{- define "runtime-docker.name" -}}
 {{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
@@ -10,7 +10,7 @@ Create a default fully qualified app name.
 We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
 If release name contains chart name it will be used as a full name.
 */}}
-{{- define "template-go.fullname" -}}
+{{- define "runtime-docker.fullname" -}}
 {{- if .Values.fullnameOverride }}
 {{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" }}
 {{- else }}
@@ -26,16 +26,16 @@ If release name contains chart name it will be used as a full name.
 {{/*
 Create chart name and version as used by the chart label.
 */}}
-{{- define "template-go.chart" -}}
+{{- define "runtime-docker.chart" -}}
 {{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
 {{/*
 Common labels
 */}}
-{{- define "template-go.labels" -}}
-helm.sh/chart: {{ include "template-go.chart" . }}
-{{ include "template-go.selectorLabels" . }}
+{{- define "runtime-docker.labels" -}}
+helm.sh/chart: {{ include "runtime-docker.chart" . }}
+{{ include "runtime-docker.selectorLabels" . }}
 {{- if .Chart.AppVersion }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
@@ -45,17 +45,17 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{/*
 Selector labels
 */}}
-{{- define "template-go.selectorLabels" -}}
-app.kubernetes.io/name: {{ include "template-go.name" . }}
+{{- define "runtime-docker.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "runtime-docker.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 
 {{/*
 Create the name of the service account to use
 */}}
-{{- define "template-go.serviceAccountName" -}}
+{{- define "runtime-docker.serviceAccountName" -}}
 {{- if .Values.serviceAccount.create }}
-{{- default (include "template-go.fullname" .) .Values.serviceAccount.name }}
+{{- default (include "runtime-docker.fullname" .) .Values.serviceAccount.name }}
 {{- else }}
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}

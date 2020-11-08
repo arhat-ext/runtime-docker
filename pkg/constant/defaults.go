@@ -17,6 +17,6 @@ limitations under the License.
 package constant
 
 const (
-	DefaultTemplateGoConfigFile   = "/etc/template-go/config.yaml"
+	DefaultAppConfigFile          = "/etc/arhat/runtime-docker.yaml"
 	DefaultArhatExtensionEndpoint = "unix:///var/run/arhat.sock"
 )

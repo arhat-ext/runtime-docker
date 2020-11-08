@@ -7,12 +7,12 @@
   dependencies:
   - stylecheck
 
-test:unit:linux:template-go:
+test:unit:linux:runtime-docker:
   extends: .test:unit
   tags:
   - linux
 
-# test:unit:windows:template-go:
+# test:unit:windows:runtime-docker:
 #   extends: .test:unit
 #   tags:
 #   - windows

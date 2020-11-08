@@ -31,28 +31,28 @@ vendor:
 include scripts/test/unit.mk
 
 # binary build
-include scripts/build/template-go.mk
+include scripts/build/runtime-docker.mk
 
 # image
-include scripts/image/template-go.mk
+include scripts/image/runtime-docker.mk
 
 image.build.linux.all: \
-	image.build.template-go.linux.all
+	image.build.runtime-docker.linux.all
 
 image.build.windows.all: \
-	image.build.template-go.windows.all
+	image.build.runtime-docker.windows.all
 
 image.push.linux.all: \
-	image.push.template-go.linux.all
+	image.push.runtime-docker.linux.all
 
 image.push.windows.all: \
-	image.push.template-go.windows.all
+	image.push.runtime-docker.windows.all
 
 # manifest
 include scripts/gen/manifests.mk
 
 # packaging
-include scripts/package/template-go.mk
+include scripts/package/runtime-docker.mk
 
 # optional private scripts
 -include private/scripts.mk

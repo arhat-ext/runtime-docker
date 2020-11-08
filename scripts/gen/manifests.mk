@@ -14,9 +14,9 @@
 
 NS ?= default
 
-gen.manifests.template-go:
+gen.manifests.runtime-docker:
 	helm template \
-		template-go \
-		cicd/deploy/charts/template-go \
+		runtime-docker \
+		cicd/deploy/charts/runtime-docker \
 		--include-crds --namespace ${NS} --debug \
-		| tee cicd/deploy/kube/template-go.yaml
+		| tee cicd/deploy/kube/runtime-docker.yaml

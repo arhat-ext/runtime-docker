@@ -30,9 +30,9 @@ _build() {
   eval "$1"
 }
 
-template_go() {
+runtime_docker() {
   # TODO: set mandatory tags and predefined tags for specific platforms
-  _build "${GOBUILD} -tags='nokube nocloud netgo ${PREDEFINED_BUILD_TAGS} ${TAGS}' ./cmd/template-go"
+  _build "${GOBUILD} -tags='nokube nocloud netgo ${PREDEFINED_BUILD_TAGS} ${TAGS}' ./cmd/runtime-docker"
 }
 
 COMP=$(printf "%s" "$@" | cut -d. -f1)
@@ -162,11 +162,11 @@ fi
 CGO_FLAGS="CC=${CC} CXX=${CXX} CC_FOR_TARGET=${CC} CXX_FOR_TARGET=${CXX} CGO_CFLAGS_ALLOW='-W' CGO_CFLAGS='${CFLAGS}' CGO_LDFLAGS='${LDFLAGS}'"
 
 GO_LDFLAGS="-s -w \
-  -X ext.arhat.dev/template-go/pkg/version.branch=${GIT_BRANCH} \
-  -X ext.arhat.dev/template-go/pkg/version.commit=${GIT_COMMIT} \
-  -X ext.arhat.dev/template-go/pkg/version.tag=${GIT_TAG} \
-  -X ext.arhat.dev/template-go/pkg/version.arch=${ARCH} \
-  -X ext.arhat.dev/template-go/pkg/version.goCompilerPlatform=$(go version | cut -d\  -f4)"
+  -X ext.arhat.dev/runtime-docker/pkg/version.branch=${GIT_BRANCH} \
+  -X ext.arhat.dev/runtime-docker/pkg/version.commit=${GIT_COMMIT} \
+  -X ext.arhat.dev/runtime-docker/pkg/version.tag=${GIT_TAG} \
+  -X ext.arhat.dev/runtime-docker/pkg/version.arch=${ARCH} \
+  -X ext.arhat.dev/runtime-docker/pkg/version.goCompilerPlatform=$(go version | cut -d\  -f4)"
 
 GOARM="$(_get_goarm "${ARCH}")"
 if [ -z "${GOARM}" ]; then

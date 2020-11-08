@@ -22,19 +22,19 @@ import (
 	"os"
 	"time"
 
-	"ext.arhat.dev/template-go/pkg/cmd"
-	"ext.arhat.dev/template-go/pkg/version"
+	"ext.arhat.dev/runtime-docker/pkg/cmd"
+	"ext.arhat.dev/runtime-docker/pkg/version"
 )
 
 func main() {
 	rand.Seed(time.Now().UnixNano())
 
-	rootCmd := cmd.NewTemplateGoCmd()
+	rootCmd := cmd.NewRuntimeDockerCmd()
 	rootCmd.AddCommand(version.NewVersionCmd())
 
 	err := rootCmd.Execute()
 	if err != nil {
-		_, _ = fmt.Fprintf(os.Stderr, "failed to run template-go %v: %v\n", os.Args, err)
+		_, _ = fmt.Fprintf(os.Stderr, "failed to run runtime-docker %v: %v\n", os.Args, err)
 		os.Exit(1)
 	}
 }

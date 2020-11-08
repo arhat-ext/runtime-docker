@@ -1,5 +1,5 @@
 apiVersion: v2
-name: template-go
+name: runtime-docker
 description: Template repo for arhat extension
 type: application
 maintainers:
@@ -14,9 +14,9 @@ keywords:
 - golang
 - iot
 # icon:
-home: https://github.com/arhat-ext/template-go
+home: https://github.com/arhat-ext/runtime-docker
 sources:
-- https://github.com/arhat-ext/template-go
+- https://github.com/arhat-ext/runtime-docker
 - https://github.com/arhat-ext/helm-charts
 version: 0.1.0
 appVersion: latest
