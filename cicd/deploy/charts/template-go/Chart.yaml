@@ -1,0 +1,22 @@
+apiVersion: v2
+name: template-go
+description: Template repo for arhat extension
+type: application
+maintainers:
+- name: arhat-ext
+  email: dev@arhat.dev
+keywords:
+- arhat
+- extension
+- peripheral
+- controller
+- libext
+- golang
+- iot
+# icon:
+home: https://github.com/arhat-ext/template-go
+sources:
+- https://github.com/arhat-ext/template-go
+- https://github.com/arhat-ext/helm-charts
+version: 0.1.0
+appVersion: latest
