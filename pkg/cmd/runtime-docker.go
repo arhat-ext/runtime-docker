@@ -25,11 +25,16 @@ import (
 	"arhat.dev/libext/codec"
 	"arhat.dev/libext/extruntime"
 	"arhat.dev/pkg/log"
+	"ext.arhat.dev/runtimeutil/storage"
 	"github.com/spf13/cobra"
 
 	"ext.arhat.dev/runtime-docker/pkg/conf"
 	"ext.arhat.dev/runtime-docker/pkg/constant"
 	"ext.arhat.dev/runtime-docker/pkg/runtime"
+
+	// Add sotrage drivers
+	_ "ext.arhat.dev/runtimeutil/storage/general"
+	_ "ext.arhat.dev/runtimeutil/storage/sshfs"
 
 	// Add protobuf codec support
 	_ "arhat.dev/libext/codec/codecpb"
@@ -70,6 +75,8 @@ func NewRuntimeDockerCmd() *cobra.Command {
 	flags.StringVarP(&configFile, "config", "c", constant.DefaultAppConfigFile,
 		"path to the config file")
 	flags.AddFlagSet(conf.FlagsForApp("", &config.App))
+	flags.AddFlagSet(conf.FlagsForRuntime("runtime.", &config.Runtime))
+	flags.AddFlagSet(storage.FlagsForClient("storage.", &config.Storage))
 
 	return runtimeDockerCmd
 }
@@ -77,7 +84,7 @@ func NewRuntimeDockerCmd() *cobra.Command {
 func run(appCtx context.Context, config *conf.Config) error {
 	logger := log.Log.WithName("App")
 
-	endpoint := config.App.Endpoint
+	endpoint := config.App.ExtensionHubURL
 
 	tlsConfig, err := config.App.TLS.GetTLSConfig(false)
 	if err != nil {
@@ -88,7 +95,7 @@ func run(appCtx context.Context, config *conf.Config) error {
 	client, err := libext.NewClient(
 		appCtx,
 		arhatgopb.EXTENSION_RUNTIME,
-		"my-runtime-name",
+		"docker",
 		c,
 		nil,
 		endpoint,
@@ -98,11 +105,20 @@ func run(appCtx context.Context, config *conf.Config) error {
 		return fmt.Errorf("failed to create extension client: %w", err)
 	}
 
-	ctrl, err := libext.NewController(appCtx, log.Log.WithName("runtime"), c.Marshal,
-		extruntime.NewHandler(
-			log.Log.WithName("handler"),
-			&runtime.SampleRuntime{},
-		),
+	storageClient, err := config.Storage.CreateClient(appCtx)
+	if err != nil {
+		return err
+	}
+
+	rt, err := runtime.NewDockerRuntime(
+		appCtx, logger.WithName("runtime"), storageClient, &config.Runtime,
+	)
+	if err != nil {
+		return err
+	}
+
+	ctrl, err := libext.NewController(appCtx, log.Log.WithName("controller"), c.Marshal,
+		extruntime.NewHandler(log.Log.WithName("handler"), rt),
 	)
 	if err != nil {
 		return fmt.Errorf("failed to create extension controller: %w", err)

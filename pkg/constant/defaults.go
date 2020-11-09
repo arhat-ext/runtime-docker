@@ -16,7 +16,23 @@ limitations under the License.
 
 package constant
 
+import "time"
+
 const (
-	DefaultAppConfigFile          = "/etc/arhat/runtime-docker.yaml"
-	DefaultArhatExtensionEndpoint = "unix:///var/run/arhat.sock"
+	DefaultAppConfigFile   = "/etc/arhat/runtime-docker.yaml"
+	DefaultExtensionHubURL = "unix:///var/run/arhat.sock"
+)
+
+const (
+	DefaultDockerUnixEndpoint    = "unix:///var/run/docker.sock"
+	DefaultDockerWindowsEndpoint = "tcp://docker.for.win.localhost:2375"
+
+	DefaultDockerDialTimeout  = time.Minute
+	DefaultPodActionTimeout   = 10 * time.Minute
+	DefaultImageActionTimeout = 15 * time.Minute
+
+	DefaultPodDataDir = "/var/lib/arhat/docker/data"
+
+	DefaultPauseImage   = "k8s.gcr.io/pause:3.3"
+	DefaultPauseCommand = "/pause"
 )

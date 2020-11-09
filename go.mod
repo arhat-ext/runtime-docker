@@ -2,6 +2,25 @@ module ext.arhat.dev/runtime-docker
 
 go 1.15
 
+// docker
+replace github.com/docker/docker => github.com/docker/engine v17.12.0-ce-rc1.0.20200917150144-3956a86b6235+incompatible
+
+require (
+	arhat.dev/aranya-proto v0.2.3
+	arhat.dev/arhat-proto v0.4.2
+	arhat.dev/libext v0.4.1
+	arhat.dev/pkg v0.3.1
+	ext.arhat.dev/runtimeutil v0.1.2
+	github.com/docker/docker v17.12.0-ce-rc1.0.20200917150144-3956a86b6235+incompatible
+	github.com/docker/go-connections v0.4.0
+	github.com/moby/term v0.0.0-20201101162038-25d840ce174a // indirect
+	github.com/opencontainers/image-spec v1.0.1
+	github.com/spf13/cobra v1.1.1
+	github.com/spf13/pflag v1.0.5
+	gopkg.in/yaml.v2 v2.3.0
+	gotest.tools/v3 v3.0.3 // indirect
+)
+
 replace (
 	k8s.io/api => github.com/kubernetes/api v0.18.10
 	k8s.io/apiextensions-apiserver => github.com/kubernetes/apiextensions-apiserver v0.18.10
@@ -29,14 +48,4 @@ replace (
 	k8s.io/sample-apiserver => github.com/kubernetes/sample-apiserver v0.18.10
 	k8s.io/utils => github.com/kubernetes/utils v0.0.0-20200821003339-5e75c0163111
 	vbom.ml/util => github.com/fvbommel/util v0.0.2
-)
-
-require (
-	arhat.dev/aranya-proto v0.2.3
-	arhat.dev/arhat-proto v0.4.2
-	arhat.dev/libext v0.4.1
-	arhat.dev/pkg v0.3.0
-	github.com/spf13/cobra v1.1.1
-	github.com/spf13/pflag v1.0.5
-	gopkg.in/yaml.v2 v2.3.0
 )

@@ -8,6 +8,10 @@
 
 Docker runtime for `arhat`
 
+## Build
+
+Supported build tags: `nostorage_sshfs`, `nostorage_general`
+
 ## LICENSE
 
 ```text
