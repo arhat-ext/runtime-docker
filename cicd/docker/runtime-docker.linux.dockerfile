@@ -1,7 +1,7 @@
 ARG ARCH=amd64
 
-FROM arhatdev/builder-go:alpine as builder
-FROM arhatdev/go:alpine-${ARCH}
+FROM ghcr.io/arhat-dev/builder-go:alpine as builder
+FROM ghcr.io/arhat-dev/go:alpine-${ARCH}
 ARG APP=runtime-docker
 
 ENTRYPOINT [ "/runtime-docker" ]
