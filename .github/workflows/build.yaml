@@ -149,7 +149,6 @@ jobs:
     - build-on-linux
     - build-on-windows
     - build-on-darwin
-    # - build-on-linux-cgo
 
     runs-on: ubuntu-latest
     steps:
@@ -170,12 +169,6 @@ jobs:
       with:
         name: build-on-darwin
         path: build
-
-    # - name: Download linux cgo builds
-    #   uses: actions/download-artifact@v2
-    #   with:
-    #     name: build-on-linux-cgo
-    #     path: build
 
     - name: Extract tag name
       id: extract_tag

@@ -120,12 +120,9 @@ runtime-docker.windows.armv7:
 # runtime-docker.windows.arm64:
 # 	sh scripts/build/build.sh $@
 
+# currently all 32bit build will fail due to moby/term int overflow
 runtime-docker.windows.all: \
-	runtime-docker.windows.amd64 \
-	runtime-docker.windows.armv7 \
-	runtime-docker.windows.x86 \
-	runtime-docker.windows.armv5 \
-	runtime-docker.windows.armv6
+	runtime-docker.windows.amd64
 
 # # android build requires android sdk
 # runtime-docker.android.amd64:
@@ -234,31 +231,3 @@ runtime-docker.openbsd.all: \
 
 runtime-docker.solaris.amd64:
 	sh scripts/build/build.sh $@
-
-runtime-docker.aix.ppc64:
-	sh scripts/build/build.sh $@
-
-runtime-docker.dragonfly.amd64:
-	sh scripts/build/build.sh $@
-
-runtime-docker.plan9.amd64:
-	sh scripts/build/build.sh $@
-
-runtime-docker.plan9.x86:
-	sh scripts/build/build.sh $@
-
-runtime-docker.plan9.armv5:
-	sh scripts/build/build.sh $@
-
-runtime-docker.plan9.armv6:
-	sh scripts/build/build.sh $@
-
-runtime-docker.plan9.armv7:
-	sh scripts/build/build.sh $@
-
-runtime-docker.plan9.all: \
-	runtime-docker.plan9.amd64 \
-	runtime-docker.plan9.armv7 \
-	runtime-docker.plan9.x86 \
-	runtime-docker.plan9.armv5 \
-	runtime-docker.plan9.armv6
