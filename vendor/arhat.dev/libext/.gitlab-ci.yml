@@ -22,7 +22,7 @@ stylecheck:
 
 .test:
   stage: unit-tests
-  image: ghcr.io/arhat-dev/builder-go:debian
+  image: arhatdev/builder-go:debian
   script:
   - make test.unit
   dependencies:
