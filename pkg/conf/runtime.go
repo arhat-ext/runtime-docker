@@ -1,11 +1,12 @@
 package conf
 
 import (
-	"ext.arhat.dev/runtime-docker/pkg/constant"
-	"github.com/spf13/pflag"
-	"path/filepath"
 	"runtime"
 	"time"
+
+	"github.com/spf13/pflag"
+
+	"ext.arhat.dev/runtime-docker/pkg/constant"
 )
 
 type RuntimeConfig struct {
@@ -46,7 +47,7 @@ func FlagsForRuntime(prefix string, config *RuntimeConfig) *pflag.FlagSet {
 	fs.StringVar(&config.Endpoint, prefix+"endpoint",
 		endpoint, "set docker endpoint")
 
-	fs.DurationVar(&config.PodActionTimeout, prefix+"dialTimeout",
+	fs.DurationVar(&config.DialTimeout, prefix+"dialTimeout",
 		constant.DefaultDockerDialTimeout, "set image operation timeout")
 
 	fs.DurationVar(&config.ImageActionTimeout, prefix+"imageActionTimeout",
@@ -59,28 +60,4 @@ func FlagsForRuntime(prefix string, config *RuntimeConfig) *pflag.FlagSet {
 		"process", "set abbot sub command to process requests")
 
 	return fs
-}
-
-func (c *RuntimeConfig) PodDir(podUID string) string {
-	return filepath.Join(c.DataDir, "pods", podUID)
-}
-
-func (c *RuntimeConfig) podVolumeDir(podUID, typ, volumeName string) string {
-	return filepath.Join(c.PodDir(podUID), "volumes", typ, volumeName)
-}
-
-func (c *RuntimeConfig) PodRemoteVolumeDir(podUID, volumeName string) string {
-	return c.podVolumeDir(podUID, "remote", volumeName)
-}
-
-func (c *RuntimeConfig) PodBindVolumeDir(podUID, volumeName string) string {
-	return c.podVolumeDir(podUID, "bind", volumeName)
-}
-
-func (c *RuntimeConfig) PodTmpfsVolumeDir(podUID, volumeName string) string {
-	return c.podVolumeDir(podUID, "tmpfs", volumeName)
-}
-
-func (c *RuntimeConfig) PodResolvConfFile(podUID string) string {
-	return filepath.Join(c.PodDir(podUID), "volumes", "bind", "_net", "resolv.conf")
 }

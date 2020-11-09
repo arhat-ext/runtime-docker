@@ -31,7 +31,10 @@ import (
 	"ext.arhat.dev/runtimeutil"
 )
 
-func (r *dockerRuntime) EnsurePod(ctx context.Context, options *runtimepb.PodEnsureCmd) (_ *runtimepb.PodStatusMsg, err error) {
+func (r *dockerRuntime) EnsurePod(
+	ctx context.Context,
+	options *runtimepb.PodEnsureCmd,
+) (_ *runtimepb.PodStatusMsg, err error) {
 	logger := r.logger.WithFields(
 		log.String("action", "create"),
 		log.String("namespace", options.Namespace),
@@ -146,7 +149,10 @@ func (r *dockerRuntime) EnsurePod(ctx context.Context, options *runtimepb.PodEns
 	return r.translatePodStatus(abbotRespBytes, pauseCtrInfo, allCtrInfo), nil
 }
 
-func (r *dockerRuntime) DeletePod(ctx context.Context, options *runtimepb.PodDeleteCmd) (_ *runtimepb.PodStatusMsg, err error) {
+func (r *dockerRuntime) DeletePod(
+	ctx context.Context,
+	options *runtimepb.PodDeleteCmd,
+) (_ *runtimepb.PodStatusMsg, err error) {
 	logger := r.logger.WithFields(log.String("action", "delete"), log.Any("options", options))
 	logger.D("deleting pod containers")
 
@@ -224,7 +230,10 @@ func (r *dockerRuntime) DeletePod(ctx context.Context, options *runtimepb.PodDel
 	return runtimepb.NewPodStatusMsg(options.PodUid, nil, nil), nil
 }
 
-func (r *dockerRuntime) ListPods(ctx context.Context, options *runtimepb.PodListCmd) (*runtimepb.PodStatusListMsg, error) {
+func (r *dockerRuntime) ListPods(
+	ctx context.Context,
+	options *runtimepb.PodListCmd,
+) (*runtimepb.PodStatusListMsg, error) {
 	logger := r.logger.WithFields(log.String("action", "list"), log.Any("options", options))
 	logger.D("listing pods")
 

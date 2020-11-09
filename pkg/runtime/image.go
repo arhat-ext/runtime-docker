@@ -32,7 +32,10 @@ import (
 	dockermessage "github.com/docker/docker/pkg/jsonmessage"
 )
 
-func (r *dockerRuntime) EnsureImages(ctx context.Context, options *runtimepb.ImageEnsureCmd) (*runtimepb.ImageStatusListMsg, error) {
+func (r *dockerRuntime) EnsureImages(
+	ctx context.Context,
+	options *runtimepb.ImageEnsureCmd,
+) (*runtimepb.ImageStatusListMsg, error) {
 	logger := r.logger.WithFields(log.String("action", "ensureImages"), log.Any("options", options))
 	logger.D("ensuring pod container image(s)")
 
