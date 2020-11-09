@@ -32,7 +32,7 @@ _build() {
 
 runtime_docker() {
   # TODO: set mandatory tags and predefined tags for specific platforms
-  _build "${GOBUILD} -tags='nokube nocloud netgo ${PREDEFINED_BUILD_TAGS} ${TAGS}' ./cmd/runtime-docker"
+  _build "CGO_ENABLED=0 ${GOBUILD} -tags='netgo ${PREDEFINED_BUILD_TAGS} ${TAGS}' ./cmd/runtime-docker"
 }
 
 COMP=$(printf "%s" "$@" | cut -d. -f1)

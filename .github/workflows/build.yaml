@@ -47,14 +47,11 @@ jobs:
 
     - name: Build
       run: |
-        CGO_ENABLED=0 make -j$(nproc --all) runtime-docker.linux.all
-        CGO_ENABLED=0 make -j$(nproc --all) runtime-docker.freebsd.all TAGS=''
-        CGO_ENABLED=0 make -j$(nproc --all) runtime-docker.netbsd.all TAGS=''
-        CGO_ENABLED=0 make -j$(nproc --all) runtime-docker.openbsd.all TAGS=''
-        CGO_ENABLED=0 make -j$(nproc --all) runtime-docker.plan9.all TAGS=''
-        CGO_ENABLED=0 make -j$(nproc --all) runtime-docker.solaris.amd64 TAGS=''
-        CGO_ENABLED=0 make -j$(nproc --all) runtime-docker.aix.ppc64 TAGS=''
-        CGO_ENABLED=0 make -j$(nproc --all) runtime-docker.dragonfly.amd64 TAGS=''
+        make -j$(nproc --all) runtime-docker.linux.all TAGS=''
+        make -j$(nproc --all) runtime-docker.freebsd.all TAGS=''
+        make -j$(nproc --all) runtime-docker.netbsd.all TAGS=''
+        make -j$(nproc --all) runtime-docker.openbsd.all TAGS=''
+        make -j$(nproc --all) runtime-docker.solaris.amd64 TAGS=''
 
     # - name: Package
     #   run: |
@@ -62,7 +59,7 @@ jobs:
 
     - name: Hash
       run: |
-        os_list="linux freebsd netbsd openbsd plan9 aix solaris dragonfly"
+        os_list="linux freebsd netbsd openbsd solaris"
 
         cd build
         for os in ${os_list}; do
@@ -78,59 +75,6 @@ jobs:
         name: build-on-linux
         path: build
 
-  # build-on-linux-cgo:
-  #   runs-on: ubuntu-latest
-  #   container:
-  #     image: arhatdev/builder-go:debian
-  #   steps:
-  #   - name: Install docker-cli in Container
-  #     run: |
-  #       apt update
-  #       apt install -y apt-transport-https ca-certificates curl software-properties-common lsb-release
-  #       curl -fsSL https://download.docker.com/linux/debian/gpg | apt-key add -
-  #       add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/debian $(lsb_release -cs) stable"
-
-  #       apt update
-  #       apt install -y docker-ce-cli
-  #       docker -v
-
-  #   - name: Run in Host
-  #     uses: arhat-dev/actions-hostrun@main
-  #     with:
-  #       run: |
-  #         docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
-  #         sudo apt update
-  #         sudo apt install -y qemu-user-static
-
-  #   - uses: actions/checkout@v2
-  #   - name: Install Extra Packages
-  #     run: |
-  #       apt update
-  #       apt install -y python3-distutils=3.7.3-1 python3-lib2to3=3.7.3-1 python3=3.7.3-1
-
-  #   - name: Build
-  #     run: |
-  #       # may need to install some packages during build process, do not run in parallel
-  #       CGO_ENABLED=1 make runtime-docker.linux.all
-
-  #   - name: Package
-  #     run: |
-  #       make package.runtime-docker.linux.all
-
-  #   - name: Hash
-  #     run: |
-  #       cd build
-  #       sha256sum runtime-docker.linux* > sha256.linux.txt
-  #       sha512sum runtime-docker.linux* > sha512.linux.txt
-  #       md5sum runtime-docker.linux* > md5.linux.txt
-  #       cd -
-
-  #   - name: Upload Artifact
-  #     uses: actions/upload-artifact@v2
-  #     with:
-  #       name: build-on-linux-cgo
-  #       path: build
-
   build-on-darwin:
     if: contains(github.head_ref, 'deps/') == false
     runs-on: macos-latest
@@ -142,7 +86,7 @@ jobs:
 
     - name: Build
       run: |
-        CGO_ENABLED=1 make runtime-docker.darwin.all
+        make runtime-docker.darwin.all
 
     # # TODO: Support macos packaging
     # - name: Package
@@ -178,7 +122,7 @@ jobs:
 
     - name: Build
       run: |
-        CGO_ENABLED=0 make -j$(nproc --all) runtime-docker.windows.all
+        make -j$(nproc --all) runtime-docker.windows.all
 
     # # TODO: Support windows packaging
     # - name: Package
@@ -293,7 +237,7 @@ jobs:
     - name: Create Checksum Files
       run: |
         files="sha256 sha512 md5"
-        os_list="darwin windows freebsd netbsd openbsd plan9 aix solaris dragonfly"
+        os_list="darwin windows freebsd netbsd openbsd solaris"
 
         for f in ${files}; do
           printf "# Linux builds\n\n" > "build/${f}.txt"
@@ -756,66 +700,6 @@ jobs:
         asset_path: build/runtime-docker.netbsd.arm64
         asset_content_type: application/octet-stream
 
-    - name: Upload runtime-docker.plan9.x86
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_name: runtime-docker.plan9.x86
-        asset_path: build/runtime-docker.plan9.x86
-        asset_content_type: application/octet-stream
-
-    - name: Upload runtime-docker.plan9.amd64
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_name: runtime-docker.plan9.amd64
-        asset_path: build/runtime-docker.plan9.amd64
-        asset_content_type: application/octet-stream
-
-    - name: Upload runtime-docker.plan9.armv5
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_name: runtime-docker.plan9.armv5
-        asset_path: build/runtime-docker.plan9.armv5
-        asset_content_type: application/octet-stream
-
-    - name: Upload runtime-docker.plan9.armv6
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_name: runtime-docker.plan9.armv6
-        asset_path: build/runtime-docker.plan9.armv6
-        asset_content_type: application/octet-stream
-
-    - name: Upload runtime-docker.plan9.armv7
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_name: runtime-docker.plan9.armv7
-        asset_path: build/runtime-docker.plan9.armv7
-        asset_content_type: application/octet-stream
-
-    - name: Upload runtime-docker.dragonfly.amd64
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_name: runtime-docker.dragonfly.amd64
-        asset_path: build/runtime-docker.dragonfly.amd64
-        asset_content_type: application/octet-stream
-
     - name: Upload runtime-docker.solaris.amd64
       uses: actions/upload-release-asset@v1
       env:
@@ -824,16 +708,6 @@ jobs:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
         asset_name: runtime-docker.solaris.amd64
         asset_path: build/runtime-docker.solaris.amd64
-        asset_content_type: application/octet-stream
-
-    - name: Upload runtime-docker.aix.ppc64
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_name: runtime-docker.aix.ppc64
-        asset_path: build/runtime-docker.aix.ppc64
         asset_content_type: application/octet-stream
 
     #
