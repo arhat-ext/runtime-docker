@@ -19,10 +19,10 @@ package conf
 import (
 	"arhat.dev/pkg/log"
 	"arhat.dev/pkg/tlshelper"
+	"ext.arhat.dev/runtimeutil/storageutil"
 	"github.com/spf13/pflag"
 
 	"ext.arhat.dev/runtime-docker/pkg/constant"
-	"ext.arhat.dev/runtimeutil/storageutil"
 )
 
 type Config struct {

@@ -25,20 +25,16 @@ import (
 	"arhat.dev/libext/codec"
 	"arhat.dev/libext/extruntime"
 	"arhat.dev/pkg/log"
+	"ext.arhat.dev/runtimeutil/storageutil"
 	"github.com/spf13/cobra"
 
 	"ext.arhat.dev/runtime-docker/pkg/conf"
 	"ext.arhat.dev/runtime-docker/pkg/constant"
 	"ext.arhat.dev/runtime-docker/pkg/runtime"
 
-	// Add sotrage drivers
-
-	"ext.arhat.dev/runtimeutil/storageutil"
-	_ "ext.arhat.dev/runtimeutil/storageutil/general"
-	_ "ext.arhat.dev/runtimeutil/storageutil/sshfs"
-
-	// Add protobuf codec support
-	_ "arhat.dev/libext/codec/codecpb"
+	_ "arhat.dev/libext/codec/codecpb"                // add protobuf codec support
+	_ "ext.arhat.dev/runtimeutil/storageutil/general" // add general storage support
+	_ "ext.arhat.dev/runtimeutil/storageutil/sshfs"   // add sshfs storage support
 )
 
 func NewRuntimeDockerCmd() *cobra.Command {

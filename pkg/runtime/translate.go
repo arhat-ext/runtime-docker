@@ -114,12 +114,12 @@ func (r *dockerRuntime) doHookActions(
 			// only one or no error will return
 			select {
 			case <-ctx.Done():
-				return ctx.Err()
-			case err := <-errCh:
-				if err != nil {
-					return err
+				return &aranyagopb.ErrorMsg{
+					Kind:        aranyagopb.ERR_COMMON,
+					Description: ctx.Err().Error(),
 				}
-				return nil
+			case err := <-errCh:
+				return err
 			}
 		}
 	case *runtimepb.ContainerAction_Http:
