@@ -10,7 +10,7 @@ require (
 	arhat.dev/arhat-proto v0.4.2
 	arhat.dev/libext v0.4.3
 	arhat.dev/pkg v0.3.5
-	ext.arhat.dev/runtimeutil v0.1.4
+	ext.arhat.dev/runtimeutil v0.1.5
 	github.com/docker/docker v17.12.0-ce-rc1.0.20200917150144-3956a86b6235+incompatible
 	github.com/docker/go-connections v0.4.0
 	github.com/moby/term v0.0.0-20201101162038-25d840ce174a // indirect
