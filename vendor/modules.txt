@@ -6,7 +6,7 @@ arhat.dev/aranya-proto/aranyagopb/runtimepb
 # arhat.dev/arhat-proto v0.4.2
 ## explicit
 arhat.dev/arhat-proto/arhatgopb
-# arhat.dev/libext v0.4.1
+# arhat.dev/libext v0.4.2
 ## explicit
 arhat.dev/libext
 arhat.dev/libext/codec
@@ -15,23 +15,25 @@ arhat.dev/libext/codec/codecpb
 arhat.dev/libext/extruntime
 arhat.dev/libext/types
 arhat.dev/libext/util
-# arhat.dev/pkg v0.3.1
+# arhat.dev/pkg v0.3.4
 ## explicit
 arhat.dev/pkg/envhelper
 arhat.dev/pkg/exechelper
 arhat.dev/pkg/hashhelper
 arhat.dev/pkg/iohelper
 arhat.dev/pkg/log
+arhat.dev/pkg/nethelper
 arhat.dev/pkg/pipenet
 arhat.dev/pkg/queue
 arhat.dev/pkg/tlshelper
 arhat.dev/pkg/wellknownerrors
-# ext.arhat.dev/runtimeutil v0.1.2
+# ext.arhat.dev/runtimeutil v0.1.4
 ## explicit
-ext.arhat.dev/runtimeutil
-ext.arhat.dev/runtimeutil/storage
-ext.arhat.dev/runtimeutil/storage/general
-ext.arhat.dev/runtimeutil/storage/sshfs
+ext.arhat.dev/runtimeutil/containerutil
+ext.arhat.dev/runtimeutil/networkutil
+ext.arhat.dev/runtimeutil/storageutil
+ext.arhat.dev/runtimeutil/storageutil/general
+ext.arhat.dev/runtimeutil/storageutil/sshfs
 # github.com/Azure/go-ansiterm v0.0.0-20170929234023-d6e3b3328b78
 github.com/Azure/go-ansiterm
 github.com/Azure/go-ansiterm/winterm
@@ -76,8 +78,6 @@ github.com/docker/go-connections/sockets
 github.com/docker/go-connections/tlsconfig
 # github.com/docker/go-units v0.4.0
 github.com/docker/go-units
-# github.com/fsnotify/fsnotify v1.4.9
-github.com/fsnotify/fsnotify
 # github.com/gogo/protobuf v1.3.1
 github.com/gogo/protobuf/proto
 github.com/gogo/protobuf/sortkeys
@@ -126,9 +126,9 @@ github.com/spf13/cobra
 # github.com/spf13/pflag v1.0.5
 ## explicit
 github.com/spf13/pflag
-# go.uber.org/atomic v1.7.0
+# go.uber.org/atomic v1.6.0
 go.uber.org/atomic
-# go.uber.org/multierr v1.6.0
+# go.uber.org/multierr v1.5.0
 go.uber.org/multierr
 # go.uber.org/zap v1.16.0
 go.uber.org/zap

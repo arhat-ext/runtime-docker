@@ -16,12 +16,6 @@ limitations under the License.
 
 package runtime
 
-import "arhat.dev/aranya-proto/aranyagopb"
-
-func createExecErrCh() chan *aranyagopb.ErrorMsg {
-	return make(chan *aranyagopb.ErrorMsg, 2)
-}
-
 func formatEnv(e map[string]string) []string {
 	var ret []string
 	for k, v := range e {

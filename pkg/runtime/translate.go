@@ -22,7 +22,7 @@ import (
 	"time"
 
 	"arhat.dev/aranya-proto/aranyagopb/runtimepb"
-	"ext.arhat.dev/runtimeutil"
+	"ext.arhat.dev/runtimeutil/containerutil"
 
 	"arhat.dev/aranya-proto/aranyagopb"
 	"arhat.dev/aranya-proto/aranyagopb/aranyagoconst"
@@ -54,12 +54,12 @@ func (r *dockerRuntime) translatePodStatus(
 	pauseContainer *dockertype.ContainerJSON,
 	containers []*dockertype.ContainerJSON,
 ) *runtimepb.PodStatusMsg {
-	podUID := pauseContainer.Config.Labels[runtimeutil.ContainerLabelPodUID]
+	podUID := pauseContainer.Config.Labels[containerutil.ContainerLabelPodUID]
 	ctrStatus := make(map[string]*runtimepb.ContainerStatus)
 
 	for _, ctr := range containers {
-		ctrPodUID := ctr.Config.Labels[runtimeutil.ContainerLabelPodUID]
-		name := ctr.Config.Labels[runtimeutil.ContainerLabelPodContainer]
+		ctrPodUID := ctr.Config.Labels[containerutil.ContainerLabelPodUID]
+		name := ctr.Config.Labels[containerutil.ContainerLabelPodContainer]
 		if name == "" || ctrPodUID != podUID {
 			// invalid container, skip
 			continue
@@ -103,14 +103,15 @@ func (r *dockerRuntime) doHookActions(
 	switch action := hook.Action.(type) {
 	case *runtimepb.ContainerAction_Exec_:
 		if cmd := action.Exec.Command; len(cmd) > 0 {
-			errCh := createExecErrCh()
-			_, err := r.execInContainer(ctx, ctrID, nil, ioutil.Discard, ioutil.Discard, cmd, false, nil, errCh)
+			_, errCh, err := r.execInContainer(ctx, ctrID, nil, ioutil.Discard, ioutil.Discard, cmd, false, nil)
 			if err != nil {
 				return &aranyagopb.ErrorMsg{
 					Kind:        aranyagopb.ERR_COMMON,
 					Description: err.Error(),
 				}
 			}
+
+			// only one or no error will return
 			return <-errCh
 		}
 	case *runtimepb.ContainerAction_Http:

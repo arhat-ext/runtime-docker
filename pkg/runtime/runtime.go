@@ -25,11 +25,11 @@ import (
 	"strings"
 	"time"
 
-	"arhat.dev/aranya-proto/aranyagopb"
 	"arhat.dev/libext/extruntime"
 	"arhat.dev/pkg/log"
-	"ext.arhat.dev/runtimeutil"
-	"ext.arhat.dev/runtimeutil/storage"
+	"ext.arhat.dev/runtimeutil/containerutil"
+	"ext.arhat.dev/runtimeutil/networkutil"
+	"ext.arhat.dev/runtimeutil/storageutil"
 	dockertype "github.com/docker/docker/api/types"
 	dockerclient "github.com/docker/docker/client"
 
@@ -39,7 +39,7 @@ import (
 func NewDockerRuntime(
 	ctx context.Context,
 	logger log.Interface,
-	storage *storage.Client,
+	storage *storageutil.Client,
 	config *conf.RuntimeConfig,
 ) (extruntime.RuntimeEngine, error) {
 	dialCtxFunc := func(timeout time.Duration) func(
@@ -87,7 +87,7 @@ func NewDockerRuntime(
 	}
 
 	rt := &dockerRuntime{
-		BaseRuntime: runtimeutil.NewBaseRuntime(
+		BaseRuntime: containerutil.NewBaseRuntime(
 			ctx, config.DataDir,
 			config.ImageActionTimeout,
 			config.PodActionTimeout,
@@ -110,7 +110,7 @@ func NewDockerRuntime(
 		storageClient: storage,
 	}
 
-	rt.networkClient = runtimeutil.NewNetworkClient(
+	rt.networkClient = networkutil.NewClient(
 		func(ctx context.Context, env map[string]string, stdin io.Reader, stdout, stderr io.Writer) error {
 			abbotCtrInfo, err := rt.findAbbotContainer(ctx)
 			if err != nil {
@@ -119,12 +119,12 @@ func NewDockerRuntime(
 
 			cmd := append(strings.Split(abbotCtrInfo.Command, " "), config.AbbotRequestSubCmd)
 
-			errCh := make(chan *aranyagopb.ErrorMsg, 2)
-			_, err = rt.execInContainer(ctx, abbotCtrInfo.ID, stdin, stdout, stderr, cmd, false, env, errCh)
+			_, errCh, err := rt.execInContainer(ctx, abbotCtrInfo.ID, stdin, stdout, stderr, cmd, false, env)
 			if err != nil {
 				return err
 			}
 
+			// only one or no error will return
 			return <-errCh
 		},
 	)
@@ -139,13 +139,13 @@ type dockerRuntime struct {
 	pauseImage   string
 	pauseCommand []string
 
-	*runtimeutil.BaseRuntime
+	*containerutil.BaseRuntime
 
 	runtimeClient dockerclient.ContainerAPIClient
 	imageClient   dockerclient.ImageAPIClient
 
-	networkClient *runtimeutil.NetworkClient
-	storageClient *storage.Client
+	networkClient *networkutil.Client
+	storageClient *storageutil.Client
 }
 
 func (r *dockerRuntime) InitRuntime() error {
@@ -156,9 +156,9 @@ func (r *dockerRuntime) InitRuntime() error {
 	logger.D("looking up abbot container")
 	abbotCtrInfo, err := r.findAbbotContainer(r.appCtx)
 	if err == nil {
-		podUID := abbotCtrInfo.Labels[runtimeutil.ContainerLabelPodUID]
+		podUID := abbotCtrInfo.Labels[containerutil.ContainerLabelPodUID]
 		logger.D("looking up pause container for abbot container")
-		pauseCtrInfo, err := r.findContainer(r.appCtx, podUID, runtimeutil.ContainerNamePause)
+		pauseCtrInfo, err := r.findContainer(r.appCtx, podUID, containerutil.ContainerNamePause)
 		if err == nil {
 			logger.D("starting pause container for abbot container")
 			plainErr := r.runtimeClient.ContainerStart(ctx, pauseCtrInfo.ID, dockertype.ContainerStartOptions{})
@@ -187,11 +187,11 @@ func (r *dockerRuntime) InitRuntime() error {
 		workContainers  []dockertype.Container
 	)
 	for i, ctr := range containers {
-		if _, ok := ctr.Labels[runtimeutil.ContainerLabelPodUID]; ok {
-			switch ctr.Labels[runtimeutil.ContainerLabelPodContainerRole] {
-			case runtimeutil.ContainerRoleInfra:
+		if _, ok := ctr.Labels[containerutil.ContainerLabelPodUID]; ok {
+			switch ctr.Labels[containerutil.ContainerLabelPodContainerRole] {
+			case containerutil.ContainerRoleInfra:
 				pauseContainers = append(pauseContainers, containers[i])
-			case runtimeutil.ContainerRoleWork:
+			case containerutil.ContainerRoleWork:
 				workContainers = append(workContainers, containers[i])
 			}
 		}
@@ -205,7 +205,7 @@ func (r *dockerRuntime) InitRuntime() error {
 			return err
 		}
 
-		if runtimeutil.IsHostNetwork(ctr.Labels) {
+		if containerutil.IsHostNetwork(ctr.Labels) {
 			continue
 		}
 

@@ -19,16 +19,16 @@ package conf
 import (
 	"arhat.dev/pkg/log"
 	"arhat.dev/pkg/tlshelper"
-	"ext.arhat.dev/runtimeutil/storage"
 	"github.com/spf13/pflag"
 
 	"ext.arhat.dev/runtime-docker/pkg/constant"
+	"ext.arhat.dev/runtimeutil/storageutil"
 )
 
 type Config struct {
-	App     AppConfig            `json:"app" yaml:"app"`
-	Runtime RuntimeConfig        `json:"runtime" yaml:"runtime"`
-	Storage storage.ClientConfig `json:"storage" yaml:"storage"`
+	App     AppConfig                `json:"app" yaml:"app"`
+	Runtime RuntimeConfig            `json:"runtime" yaml:"runtime"`
+	Storage storageutil.ClientConfig `json:"storage" yaml:"storage"`
 }
 
 type AppConfig struct {
@@ -36,6 +36,9 @@ type AppConfig struct {
 
 	// ExtensionHubURL url to the extension server (usually, the arhat)
 	ExtensionHubURL string `json:"extensionHubURL" yaml:"extensionHubURL"`
+
+	// affects udp packaet payload size
+	MaxDataMessagePayload int `json:"maxDataMessagePayload" yaml:"maxDataMessagePayload"`
 
 	// TLS Client config for the endpoint
 	TLS tlshelper.TLSConfig `json:"tls" yaml:"tls"`
@@ -46,6 +49,8 @@ func FlagsForApp(prefix string, config *AppConfig) *pflag.FlagSet {
 
 	fs.StringVar(&config.ExtensionHubURL, prefix+"extensionHubURL",
 		constant.DefaultExtensionHubURL, "set arhat listen address")
+
+	fs.IntVar(&config.MaxDataMessagePayload, prefix+"maxDataMessagePayload", 65535, "")
 
 	fs.AddFlagSet(tlshelper.FlagsForTLSConfig(prefix+"tls.", &config.TLS))
 

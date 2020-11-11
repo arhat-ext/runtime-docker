@@ -25,10 +25,11 @@ import (
 	"arhat.dev/aranya-proto/aranyagopb"
 	"arhat.dev/libext/types"
 	"arhat.dev/pkg/log"
+	"arhat.dev/pkg/nethelper"
 	dockertype "github.com/docker/docker/api/types"
 	dockercopy "github.com/docker/docker/pkg/stdcopy"
 
-	"ext.arhat.dev/runtimeutil"
+	"ext.arhat.dev/runtimeutil/containerutil"
 )
 
 func (r *dockerRuntime) Exec(
@@ -38,8 +39,11 @@ func (r *dockerRuntime) Exec(
 	stdout, stderr io.Writer,
 	command []string,
 	tty bool,
-	errCh chan<- *aranyagopb.ErrorMsg,
-) (types.ResizeHandleFunc, error) {
+) (
+	resizeFunc types.ResizeHandleFunc,
+	errCh <-chan *aranyagopb.ErrorMsg,
+	err error,
+) {
 	logger := r.logger.WithFields(
 		log.String("uid", podUID),
 		log.String("container", container),
@@ -49,11 +53,11 @@ func (r *dockerRuntime) Exec(
 
 	ctr, err := r.findContainer(ctx, podUID, container)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	return r.execInContainer(
-		ctx, ctr.ID, stdin, stdout, stderr, command, tty, nil, errCh,
+		ctx, ctr.ID, stdin, stdout, stderr, command, tty, nil,
 	)
 }
 
@@ -62,8 +66,11 @@ func (r *dockerRuntime) Attach(
 	podUID, container string,
 	stdin io.Reader,
 	stdout, stderr io.Writer,
-	errCh chan<- *aranyagopb.ErrorMsg,
-) (types.ResizeHandleFunc, error) {
+) (
+	resizeFunc types.ResizeHandleFunc,
+	_ <-chan *aranyagopb.ErrorMsg,
+	err error,
+) {
 	logger := r.logger.WithFields(
 		log.String("action", "attach"),
 		log.String("uid", podUID),
@@ -73,7 +80,7 @@ func (r *dockerRuntime) Attach(
 
 	ctr, err := r.findContainer(ctx, podUID, container)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	ctx, cancelAttach := r.ActionContext(ctx)
@@ -86,8 +93,10 @@ func (r *dockerRuntime) Attach(
 		Stderr: stderr != nil,
 	})
 	if err != nil {
-		return nil, fmt.Errorf("failed to attach container: %w", err)
+		return nil, nil, fmt.Errorf("failed to attach container: %w", err)
 	}
+
+	errCh := make(chan *aranyagopb.ErrorMsg, 2)
 	go func() {
 		defer func() {
 			defer func() {
@@ -146,7 +155,7 @@ func (r *dockerRuntime) Attach(
 		if err2 != nil {
 			logger.I("failed to resize tty", log.Error(err2))
 		}
-	}, nil
+	}, errCh, nil
 }
 
 func (r *dockerRuntime) Logs(
@@ -203,8 +212,15 @@ func (r *dockerRuntime) PortForward(
 	protocol string,
 	port int32,
 	upstream io.Reader,
-	downstream io.Writer,
-) error {
+) (
+	downstream io.ReadCloser,
+	closeWrite func(),
+	readErrCh <-chan error,
+	err error,
+) {
+	ctx, cancelAttach := r.ActionContext(ctx)
+	defer cancelAttach()
+
 	logger := r.logger.WithFields(
 		log.String("action", "portforward"),
 		log.String("proto", protocol),
@@ -213,14 +229,14 @@ func (r *dockerRuntime) PortForward(
 	)
 
 	logger.D("port-forwarding to pod container")
-	pauseCtr, err := r.findContainer(ctx, podUID, runtimeutil.ContainerNamePause)
+	pauseCtr, err := r.findContainer(ctx, podUID, containerutil.ContainerNamePause)
 	if err != nil {
-		return err
+		return nil, nil, nil, err
 	}
 
 	// TODO: fix address discovery
 	if pauseCtr.NetworkSettings == nil {
-		return fmt.Errorf("failed to find network settings: %w", err)
+		return nil, nil, nil, fmt.Errorf("failed to find network settings: %w", err)
 	}
 
 	address := ""
@@ -232,11 +248,8 @@ func (r *dockerRuntime) PortForward(
 	}
 
 	if address == "" {
-		return fmt.Errorf("failed to find container bridge address: %w", err)
+		return nil, nil, nil, fmt.Errorf("failed to find container bridge address: %w", err)
 	}
 
-	ctx, cancel := r.ActionContext(ctx)
-	defer cancel()
-
-	return runtimeutil.PortForward(ctx, address, protocol, port, upstream, downstream)
+	return nethelper.PortForward(ctx, nil, address, protocol, port, upstream, nil)
 }

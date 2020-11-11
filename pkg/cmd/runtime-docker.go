@@ -25,7 +25,6 @@ import (
 	"arhat.dev/libext/codec"
 	"arhat.dev/libext/extruntime"
 	"arhat.dev/pkg/log"
-	"ext.arhat.dev/runtimeutil/storage"
 	"github.com/spf13/cobra"
 
 	"ext.arhat.dev/runtime-docker/pkg/conf"
@@ -33,8 +32,10 @@ import (
 	"ext.arhat.dev/runtime-docker/pkg/runtime"
 
 	// Add sotrage drivers
-	_ "ext.arhat.dev/runtimeutil/storage/general"
-	_ "ext.arhat.dev/runtimeutil/storage/sshfs"
+
+	"ext.arhat.dev/runtimeutil/storageutil"
+	_ "ext.arhat.dev/runtimeutil/storageutil/general"
+	_ "ext.arhat.dev/runtimeutil/storageutil/sshfs"
 
 	// Add protobuf codec support
 	_ "arhat.dev/libext/codec/codecpb"
@@ -76,7 +77,7 @@ func NewRuntimeDockerCmd() *cobra.Command {
 		"path to the config file")
 	flags.AddFlagSet(conf.FlagsForApp("", &config.App))
 	flags.AddFlagSet(conf.FlagsForRuntime("runtime.", &config.Runtime))
-	flags.AddFlagSet(storage.FlagsForClient("storage.", &config.Storage))
+	flags.AddFlagSet(storageutil.FlagsForClient("storageutil.", &config.Storage))
 
 	return runtimeDockerCmd
 }
@@ -118,7 +119,7 @@ func run(appCtx context.Context, config *conf.Config) error {
 	}
 
 	ctrl, err := libext.NewController(appCtx, log.Log.WithName("controller"), c.Marshal,
-		extruntime.NewHandler(log.Log.WithName("handler"), rt),
+		extruntime.NewHandler(log.Log.WithName("handler"), config.App.MaxDataMessagePayload, rt),
 	)
 	if err != nil {
 		return fmt.Errorf("failed to create extension controller: %w", err)

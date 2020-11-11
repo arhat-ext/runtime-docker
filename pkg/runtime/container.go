@@ -33,8 +33,8 @@ import (
 	extypes "arhat.dev/libext/types"
 	"arhat.dev/pkg/log"
 	"arhat.dev/pkg/wellknownerrors"
-	"ext.arhat.dev/runtimeutil"
-	"ext.arhat.dev/runtimeutil/storage"
+	"ext.arhat.dev/runtimeutil/containerutil"
+	"ext.arhat.dev/runtimeutil/storageutil"
 	dockertype "github.com/docker/docker/api/types"
 	dockercontainer "github.com/docker/docker/api/types/container"
 	dockerfilter "github.com/docker/docker/api/types/filters"
@@ -76,7 +76,7 @@ func (r *dockerRuntime) listPauseContainers(ctx context.Context) ([]*dockertype.
 	return r.listContainersByLabels(
 		ctx,
 		map[string]string{
-			runtimeutil.ContainerLabelPodContainerRole: runtimeutil.ContainerRoleInfra,
+			containerutil.ContainerLabelPodContainerRole: containerutil.ContainerRoleInfra,
 		},
 	)
 }
@@ -99,14 +99,14 @@ func (r *dockerRuntime) findContainerByLabels(
 func (r *dockerRuntime) findContainer(ctx context.Context, podUID, container string) (*dockertype.Container, error) {
 	return r.findContainerByLabels(ctx,
 		map[string]string{
-			runtimeutil.ContainerLabelPodUID:       podUID,
-			runtimeutil.ContainerLabelPodContainer: container,
+			containerutil.ContainerLabelPodUID:       podUID,
+			containerutil.ContainerLabelPodContainer: container,
 		},
 	)
 }
 
 func (r *dockerRuntime) findAbbotContainer(ctx context.Context) (*dockertype.Container, error) {
-	return r.findContainerByLabels(ctx, runtimeutil.AbbotMatchLabels())
+	return r.findContainerByLabels(ctx, containerutil.AbbotMatchLabels())
 }
 
 func (r *dockerRuntime) execInContainer(
@@ -117,8 +117,11 @@ func (r *dockerRuntime) execInContainer(
 	command []string,
 	tty bool,
 	env map[string]string,
-	errCh chan<- *aranyagopb.ErrorMsg,
-) (extypes.ResizeHandleFunc, error) {
+) (
+	resizeFunc extypes.ResizeHandleFunc,
+	_ <-chan *aranyagopb.ErrorMsg,
+	err error,
+) {
 	execCtx, cancelExec := r.ActionContext(ctx)
 	defer cancelExec()
 
@@ -135,14 +138,14 @@ func (r *dockerRuntime) execInContainer(
 		},
 	)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	attachResp, err := r.runtimeClient.ContainerExecAttach(
 		execCtx, resp.ID, dockertype.ExecStartCheck{Tty: tty},
 	)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	var stdOut, stdErr io.Writer
@@ -154,9 +157,11 @@ func (r *dockerRuntime) execInContainer(
 		stdErr = ioutil.Discard
 	}
 
+	errCh := make(chan *aranyagopb.ErrorMsg, 2)
 	go func() {
 		defer func() {
 			defer func() {
+				// send to closed channel can cause panic, ignore it
 				_ = recover()
 			}()
 
@@ -190,6 +195,7 @@ func (r *dockerRuntime) execInContainer(
 	if stdin != nil {
 		go func() {
 			defer func() {
+				// send to closed channel can cause panic, ignore it
 				_ = recover()
 			}()
 
@@ -211,7 +217,7 @@ func (r *dockerRuntime) execInContainer(
 			Height: uint(rows),
 			Width:  uint(cols),
 		})
-	}, nil
+	}, errCh, nil
 }
 
 // nolint:goconst
@@ -219,7 +225,7 @@ func (r *dockerRuntime) createPauseContainer(
 	ctx context.Context,
 	options *runtimepb.PodEnsureCmd,
 ) (ctrInfo *dockertype.ContainerJSON, abbotRespBytes []byte, err error) {
-	_, err = r.findContainer(ctx, options.PodUid, runtimeutil.ContainerNamePause)
+	_, err = r.findContainer(ctx, options.PodUid, containerutil.ContainerNamePause)
 	if err == nil {
 		return nil, nil, wellknownerrors.ErrAlreadyExists
 	} else if !errors.Is(err, wellknownerrors.ErrNotFound) {
@@ -255,7 +261,7 @@ func (r *dockerRuntime) createPauseContainer(
 		hosts = append(hosts, fmt.Sprintf("%s:%s", k, v))
 	}
 
-	pauseCtrName := runtimeutil.GetContainerName(options.Namespace, options.Name, runtimeutil.ContainerNamePause)
+	pauseCtrName := containerutil.GetContainerName(options.Namespace, options.Name, containerutil.ContainerNamePause)
 	pauseCtr, err := r.runtimeClient.ContainerCreate(ctx,
 		&dockercontainer.Config{
 			Image:           r.pauseImage,
@@ -263,7 +269,7 @@ func (r *dockerRuntime) createPauseContainer(
 			ExposedPorts:    exposedPorts,
 			Hostname:        hostname,
 			NetworkDisabled: !options.HostNetwork,
-			Labels:          runtimeutil.ContainerLabels(options, runtimeutil.ContainerNamePause),
+			Labels:          containerutil.ContainerLabels(options, containerutil.ContainerNamePause),
 		},
 		&dockercontainer.HostConfig{
 			Resources: dockercontainer.Resources{
@@ -367,7 +373,7 @@ func (r *dockerRuntime) createContainer(
 		envs              = formatEnv(spec.Envs)
 		hostPaths         = options.GetVolumes().GetHostPaths()
 		volumeData        = options.GetVolumes().GetVolumeData()
-		containerFullName = runtimeutil.GetContainerName(options.Namespace, options.Name, spec.Name)
+		containerFullName = containerutil.GetContainerName(options.Namespace, options.Name, spec.Name)
 		healthCheck       *dockercontainer.HealthConfig
 		maskedPaths       []string
 		readonlyPaths     []string
@@ -397,7 +403,7 @@ func (r *dockerRuntime) createContainer(
 		// check if it is host volume or emptyDir
 		hostPath, isHostVol := hostPaths[volName]
 		if isHostVol {
-			source, err = runtimeutil.ResolveHostPathMountSource(
+			source, err = storageutil.ResolveHostPathMountSource(
 				hostPath, options.PodUid, volName, volMountSpec.Remote,
 				r.PodRemoteVolumeDir, r.PodTmpfsVolumeDir,
 			)
@@ -518,7 +524,7 @@ func (r *dockerRuntime) createContainer(
 		Volumes:    containerVolumes,
 		WorkingDir: spec.WorkingDir,
 
-		Labels:     runtimeutil.ContainerLabels(options, spec.Name),
+		Labels:     containerutil.ContainerLabels(options, spec.Name),
 		StopSignal: "SIGTERM",
 	}
 	hostConfig := &dockercontainer.HostConfig{
@@ -575,7 +581,7 @@ func (r *dockerRuntime) deleteContainer(ctx context.Context, containerID string,
 			}
 		}
 
-		if runtimeutil.IsAbbotPod(pauseCtr.Config.Labels) {
+		if containerutil.IsAbbotPod(pauseCtr.Config.Labels) {
 			var containers []*dockertype.Container
 			containers, err = r.listPauseContainers(ctx)
 			if err != nil {
@@ -583,13 +589,13 @@ func (r *dockerRuntime) deleteContainer(ctx context.Context, containerID string,
 			}
 
 			for _, ctr := range containers {
-				if !runtimeutil.IsHostNetwork(ctr.Labels) {
+				if !containerutil.IsHostNetwork(ctr.Labels) {
 					return wellknownerrors.ErrInvalidOperation
 				}
 			}
 		}
 
-		if !runtimeutil.IsHostNetwork(pauseCtr.Config.Labels) {
+		if !containerutil.IsHostNetwork(pauseCtr.Config.Labels) {
 			err = r.networkClient.Delete(ctx, int64(pauseCtr.State.Pid), pauseCtr.ID)
 			if err != nil {
 				return err
@@ -612,14 +618,14 @@ func (r *dockerRuntime) deleteContainer(ctx context.Context, containerID string,
 	return nil
 }
 
-func (r *dockerRuntime) handleStorageFailure(podUID string) storage.ExitHandleFunc {
+func (r *dockerRuntime) handleStorageFailure(podUID string) storageutil.ExitHandleFunc {
 	logger := r.logger.WithFields(log.String("module", "storage"), log.String("podUID", podUID))
 	return func(remotePath, mountPoint string, err error) {
 		if err != nil {
 			logger.I("storage mounter exited", log.Error(err))
 		}
 
-		_, e := r.findContainer(context.TODO(), podUID, runtimeutil.ContainerNamePause)
+		_, e := r.findContainer(context.TODO(), podUID, containerutil.ContainerNamePause)
 		if errors.Is(e, wellknownerrors.ErrNotFound) {
 			logger.D("pod not found, no more remount action")
 			return

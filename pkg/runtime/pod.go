@@ -28,7 +28,8 @@ import (
 	dockerfilter "github.com/docker/docker/api/types/filters"
 	dockerclient "github.com/docker/docker/client"
 
-	"ext.arhat.dev/runtimeutil"
+	"ext.arhat.dev/runtimeutil/containerutil"
+	"ext.arhat.dev/runtimeutil/storageutil"
 )
 
 func (r *dockerRuntime) EnsurePod(
@@ -49,7 +50,7 @@ func (r *dockerRuntime) EnsurePod(
 
 		if err != nil && !errors.Is(err, wellknownerrors.ErrAlreadyExists) {
 			logger.D("cleaning up pod data")
-			err2 := runtimeutil.CleanupPodData(
+			err2 := storageutil.CleanupPodData(
 				r.PodDir(options.PodUid),
 				r.PodRemoteVolumeDir(options.PodUid, ""),
 				r.PodTmpfsVolumeDir(options.PodUid, ""),
@@ -68,7 +69,7 @@ func (r *dockerRuntime) EnsurePod(
 		abbotRespBytes []byte
 	)
 
-	pauseCtr, err := r.findContainer(ctx, options.PodUid, runtimeutil.ContainerNamePause)
+	pauseCtr, err := r.findContainer(ctx, options.PodUid, containerutil.ContainerNamePause)
 	if err != nil {
 		if errors.Is(err, wellknownerrors.ErrNotFound) {
 			// need to create pause container
@@ -103,7 +104,7 @@ func (r *dockerRuntime) EnsurePod(
 	for _, spec := range options.Containers {
 		ctrLogger := logger.WithFields(log.String("container", spec.Name))
 		ctrLogger.D("creating container")
-		ctrID, err := r.createContainer(ctx, options, spec, runtimeutil.SharedNamespaces(pauseCtrInfo.ID, options))
+		ctrID, err := r.createContainer(ctx, options, spec, containerutil.SharedNamespaces(pauseCtrInfo.ID, options))
 		if err != nil {
 			ctrLogger.I("failed to create container", log.Error(err))
 			return nil, err
@@ -161,7 +162,7 @@ func (r *dockerRuntime) DeletePod(
 		cancelDelete()
 
 		logger.D("cleaning up pod data")
-		err2 := runtimeutil.CleanupPodData(
+		err2 := storageutil.CleanupPodData(
 			r.PodDir(options.PodUid),
 			r.PodRemoteVolumeDir(options.PodUid, ""),
 			r.PodTmpfsVolumeDir(options.PodUid, ""),
@@ -178,7 +179,7 @@ func (r *dockerRuntime) DeletePod(
 		Quiet: true,
 		All:   true,
 		Filters: dockerfilter.NewArgs(
-			dockerfilter.Arg("label", fmt.Sprintf("%s=%s", runtimeutil.ContainerLabelPodUID, options.PodUid)),
+			dockerfilter.Arg("label", fmt.Sprintf("%s=%s", containerutil.ContainerLabelPodUID, options.PodUid)),
 		),
 	})
 	if err != nil && !dockerclient.IsErrNotFound(err) {
@@ -190,7 +191,7 @@ func (r *dockerRuntime) DeletePod(
 	pauseCtrIndex := -1
 	for i, ctr := range containers {
 		// find pause container
-		if ctr.Labels[runtimeutil.ContainerLabelPodContainerRole] == runtimeutil.ContainerRoleInfra {
+		if ctr.Labels[containerutil.ContainerLabelPodContainerRole] == containerutil.ContainerRoleInfra {
 			pauseCtrIndex = i
 			break
 		}
@@ -210,7 +211,7 @@ func (r *dockerRuntime) DeletePod(
 			isPauseCtr = true
 		}
 
-		name := ctr.Labels[runtimeutil.ContainerLabelPodContainer]
+		name := ctr.Labels[containerutil.ContainerLabelPodContainer]
 		if options.HookPreStop != nil {
 			if hook, ok := options.HookPreStop[name]; ok {
 				logger.D("executing pre-stop hook", log.String("name", name))
@@ -244,7 +245,7 @@ func (r *dockerRuntime) ListPods(
 	if !options.All {
 		if len(options.Names) != 0 {
 			// TODO: filter multiple names
-			filter.Add("label", runtimeutil.ContainerLabelPodName+"="+options.Names[0])
+			filter.Add("label", containerutil.ContainerLabelPodName+"="+options.Names[0])
 		}
 	}
 
@@ -267,14 +268,14 @@ func (r *dockerRuntime) ListPods(
 	)
 
 	for _, ctr := range containers {
-		podUID, hasUID := ctr.Labels[runtimeutil.ContainerLabelPodUID]
+		podUID, hasUID := ctr.Labels[containerutil.ContainerLabelPodUID]
 		if !hasUID {
 			// not the container created by us
 			continue
 		}
 
-		role, hasRole := ctr.Labels[runtimeutil.ContainerLabelPodContainerRole]
-		if hasRole && role == runtimeutil.ContainerRoleInfra {
+		role, hasRole := ctr.Labels[containerutil.ContainerLabelPodContainerRole]
+		if hasRole && role == containerutil.ContainerRoleInfra {
 			pauseContainers[podUID] = ctr
 			continue
 		}
@@ -304,7 +305,7 @@ func (r *dockerRuntime) ListPods(
 		}
 
 		var abbotRespBytes []byte
-		if !runtimeutil.IsHostNetwork(pauseCtrSpec.Config.Labels) {
+		if !containerutil.IsHostNetwork(pauseCtrSpec.Config.Labels) {
 			abbotRespBytes, err = r.networkClient.Query(ctx, int64(pauseCtrSpec.State.Pid), pauseCtrSpec.ID)
 			if err != nil {
 				return nil, err
