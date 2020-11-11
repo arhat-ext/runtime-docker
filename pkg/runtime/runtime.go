@@ -125,7 +125,15 @@ func NewDockerRuntime(
 			}
 
 			// only one or no error will return
-			return <-errCh
+			select {
+			case <-ctx.Done():
+				return ctx.Err()
+			case err := <-errCh:
+				if err != nil {
+					return err
+				}
+				return nil
+			}
 		},
 	)
 

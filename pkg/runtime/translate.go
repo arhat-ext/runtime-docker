@@ -112,7 +112,15 @@ func (r *dockerRuntime) doHookActions(
 			}
 
 			// only one or no error will return
-			return <-errCh
+			select {
+			case <-ctx.Done():
+				return ctx.Err()
+			case err := <-errCh:
+				if err != nil {
+					return err
+				}
+				return nil
+			}
 		}
 	case *runtimepb.ContainerAction_Http:
 	case *runtimepb.ContainerAction_Socket_:
