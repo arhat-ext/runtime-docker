@@ -6,7 +6,7 @@ arhat.dev/aranya-proto/aranyagopb/runtimepb
 # arhat.dev/arhat-proto v0.4.2
 ## explicit
 arhat.dev/arhat-proto/arhatgopb
-# arhat.dev/libext v0.4.4
+# arhat.dev/libext v0.4.7
 ## explicit
 arhat.dev/libext
 arhat.dev/libext/codec

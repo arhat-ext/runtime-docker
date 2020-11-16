@@ -8,7 +8,7 @@ replace github.com/docker/docker => github.com/docker/engine v17.12.0-ce-rc1.0.2
 require (
 	arhat.dev/aranya-proto v0.2.3
 	arhat.dev/arhat-proto v0.4.2
-	arhat.dev/libext v0.4.4
+	arhat.dev/libext v0.4.7
 	arhat.dev/pkg v0.4.2
 	ext.arhat.dev/runtimeutil v0.2.2
 	github.com/docker/docker v17.12.0-ce-rc1.0.20200917150144-3956a86b6235+incompatible
