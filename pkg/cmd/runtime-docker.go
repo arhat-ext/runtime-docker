@@ -31,10 +31,6 @@ import (
 	"ext.arhat.dev/runtime-docker/pkg/conf"
 	"ext.arhat.dev/runtime-docker/pkg/constant"
 	"ext.arhat.dev/runtime-docker/pkg/runtime"
-
-	_ "arhat.dev/libext/codec/codecpb"                // add protobuf codec support
-	_ "ext.arhat.dev/runtimeutil/storageutil/general" // add general storage support
-	_ "ext.arhat.dev/runtimeutil/storageutil/sshfs"   // add sshfs storage support
 )
 
 func NewRuntimeDockerCmd() *cobra.Command {
@@ -88,7 +84,11 @@ func run(appCtx context.Context, config *conf.Config) error {
 		return fmt.Errorf("failed to create tls config: %w", err)
 	}
 
-	c := codec.GetCodec(arhatgopb.CODEC_PROTOBUF)
+	c, ok := codec.Get(arhatgopb.CODEC_PROTOBUF)
+	if !ok {
+		return fmt.Errorf("protobuf codec not found")
+	}
+
 	client, err := libext.NewClient(
 		appCtx,
 		arhatgopb.EXTENSION_RUNTIME,

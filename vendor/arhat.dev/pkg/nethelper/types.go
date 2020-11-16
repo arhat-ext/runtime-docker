@@ -1,3 +1,5 @@
+// +build !nonethelper
+
 /*
 Copyright 2020 The arhat.dev Authors.
 
@@ -14,35 +16,25 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package codecjson
+package nethelper
 
 import (
-	"encoding/json"
-	"io"
-
-	"arhat.dev/arhat-proto/arhatgopb"
-
-	"arhat.dev/libext/types"
+	"context"
+	"net"
 )
 
-type Codec struct{}
+type (
+	ListenFunc func(
+		ctx context.Context,
+		config interface{},
+		network, addr string,
+		tlsConfig interface{},
+	) (interface{}, error)
 
-func (c *Codec) Type() arhatgopb.CodecType {
-	return arhatgopb.CODEC_JSON
-}
-
-func (c *Codec) NewEncoder(w io.Writer) types.Encoder {
-	return json.NewEncoder(w)
-}
-
-func (c *Codec) NewDecoder(r io.Reader) types.Decoder {
-	return json.NewDecoder(r)
-}
-
-func (c *Codec) Marshal(v interface{}) ([]byte, error) {
-	return json.Marshal(v)
-}
-
-func (c *Codec) Unmarshal(data []byte, out interface{}) error {
-	return json.Unmarshal(data, out)
-}
+	DialFunc func(
+		ctx context.Context,
+		dialer interface{},
+		network, addr string,
+		tlsConfig interface{},
+	) (net.Conn, error)
+)

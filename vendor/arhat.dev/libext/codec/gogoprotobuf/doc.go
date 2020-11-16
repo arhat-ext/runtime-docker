@@ -14,15 +14,5 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-// Package codecjson uses stdlib json for libext
-package codecjson
-
-import (
-	"arhat.dev/arhat-proto/arhatgopb"
-
-	"arhat.dev/libext/codec"
-)
-
-func init() {
-	codec.RegisterCodec(arhatgopb.CODEC_JSON, new(Codec))
-}
+// Package codecpb implements protobuf codec for libext
+package gogoprotobuf

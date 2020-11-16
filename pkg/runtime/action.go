@@ -20,6 +20,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"net"
 	"strconv"
 
 	"arhat.dev/aranya-proto/aranyagopb"
@@ -251,5 +252,12 @@ func (r *dockerRuntime) PortForward(
 		return nil, nil, nil, fmt.Errorf("failed to find container bridge address: %w", err)
 	}
 
-	return nethelper.PortForward(ctx, nil, address, protocol, port, upstream, nil)
+	return nethelper.Forward(
+		ctx,
+		nil,
+		protocol,
+		net.JoinHostPort(address, strconv.FormatInt(int64(port), 10)),
+		upstream,
+		nil,
+	)
 }

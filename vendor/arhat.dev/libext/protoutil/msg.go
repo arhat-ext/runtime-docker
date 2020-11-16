@@ -14,31 +14,28 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package util
+package protoutil
 
-import "sync"
+import (
+	"arhat.dev/arhat-proto/arhatgopb"
 
-var bytesBufPool = &sync.Pool{
-	New: func() interface{} {
-		buf := make([]byte, 32)
-		return &buf
-	},
-}
+	"arhat.dev/libext/codec"
+)
 
-func GetBytesBuf(size int) []byte {
-	buf := *bytesBufPool.Get().(*[]byte)
-	if len(buf) >= size {
-		return buf
+func NewMsg(
+	marshal codec.MarshalFunc,
+	kind arhatgopb.MsgType,
+	id, ack uint64, body interface{},
+) (*arhatgopb.Msg, error) {
+	payload, err := marshal(body)
+	if err != nil {
+		return nil, err
 	}
 
-	// resize to expected size
-	extend := size - len(buf)
-	if extend < size {
-		return append(buf, make([]byte, extend)...)
-	}
-	return append(make([]byte, extend), buf...)
-}
-
-func PutBytesBuf(b *[]byte) {
-	bytesBufPool.Put(b)
+	return &arhatgopb.Msg{
+		Kind:    kind,
+		Id:      id,
+		Ack:     ack,
+		Payload: payload,
+	}, nil
 }
